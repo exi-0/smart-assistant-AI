@@ -10,7 +10,7 @@ yfinance
 torch
 sentence-transformers
 scikit-learn
-tensorflow
+
 
 PyPDF2
 
