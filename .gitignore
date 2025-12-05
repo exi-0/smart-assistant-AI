@@ -5,11 +5,6 @@
 __pycache__/
 *.pyc
 
-# Data files (optional)
-data/*.xlsx
-data/*.pdf
-data/*.csv
-
 # VSCode
 .vscode/
 
