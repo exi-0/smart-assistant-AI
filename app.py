@@ -19,7 +19,7 @@ load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 # ✅ Replace with your own Gemini API key or keep it in .env
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or "PASTE GEMINI API KEYS"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
 
 if not GEMINI_API_KEY or not PINECONE_API_KEY:
     raise ValueError("❌ Missing API keys. Check your .env file or set GEMINI_API_KEY manually.")
