@@ -14,50 +14,48 @@ import google.generativeai as genai
 
 # ENV + MODEL SETUP
 
+# ENV + MODEL SETUP (Optimized for Render)
+
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# ✅ Replace with your own Gemini API key or keep it in .env
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
+# Safe Gemini setup
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+except Exception as e:
+    print("❌ Gemini init error:", e)
 
-if not GEMINI_API_KEY or not PINECONE_API_KEY:
-    raise ValueError("❌ Missing API keys. Check your .env file or set GEMINI_API_KEY manually.")
-
-# ✅ Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-
-print("✅ Gemini SDK version:", genai.__version__)
-print("\nAvailable models:")
-for m in genai.list_models():
-    if "generateContent" in m.supported_generation_methods:
-        print(" -", m.name)
-
-# ✅ Use the latest model
 GEMINI_MODEL = "gemini-2.5-flash"
 
-# Sentence Transformer
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
+# Lazy-load embedding model (fast startup)
+embedding_model = None
+def get_embedding_model():
+    global embedding_model
+    if embedding_model is None:
+        print("⚡ Loading MiniLM model...")
+        embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+    return embedding_model
 
-# Pinecone setup
-pinecone = Pinecone(api_key=PINECONE_API_KEY)
-INDEX_NAME = "employee-support-kb"
+# Safe Pinecone setup (won’t crash app)
+try:
+    pinecone = Pinecone(api_key=PINECONE_API_KEY)
+    INDEX_NAME = "employee-support-kb"
+    existing_indexes = [index.name for index in pinecone.list_indexes()]
 
-# Create index if not exists
-existing_indexes = [index.name for index in pinecone.list_indexes()]
-if INDEX_NAME not in existing_indexes:
-    pinecone.create_index(
-        name=INDEX_NAME,
-        dimension=384,
-        metric="cosine",
-        spec=ServerlessSpec(cloud='aws', region='us-east-1')
-    )
-    print(f"✅ Created new Pinecone index: {INDEX_NAME}")
-else:
-    print(f"✅ Using existing Pinecone index: {INDEX_NAME}")
+    if INDEX_NAME not in existing_indexes:
+        pinecone.create_index(
+            name=INDEX_NAME,
+            dimension=384,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1")
+        )
+    kb_index = pinecone.Index(INDEX_NAME)
 
-kb_index = pinecone.Index(INDEX_NAME)
+except Exception as e:
+    print("❌ Pinecone init error:", e)
+    kb_index = None
 
 
 #                DATA LOADING
@@ -118,7 +116,10 @@ def embed_and_index_texts(texts: List[str], batch_size: int = 100):
     print("✅ All data indexed successfully.")
 
 def retrieve_relevant_docs(query: str, top_k: int = 5):
-    query_vec = embedding_model.encode([query])[0].tolist()
+    model = get_embedding_model()
+    if kb_index is None:
+        return []
+    query_vec = model.encode([query])[0].tolist()
     results = kb_index.query(vector=query_vec, top_k=top_k, include_metadata=True)
     return [match["metadata"]["text"] for match in results["matches"]]
 
