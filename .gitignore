@@ -1,0 +1,18 @@
+# Environment
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Data files (optional)
+data/*.xlsx
+data/*.pdf
+data/*.csv
+
+# VSCode
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
