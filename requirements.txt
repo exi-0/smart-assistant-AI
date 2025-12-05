@@ -2,6 +2,9 @@ fastapi
 uvicorn
 streamlit
 
+pinecone
+
+
 pandas
 numpy
 matplotlib
