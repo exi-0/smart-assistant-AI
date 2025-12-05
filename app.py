@@ -152,8 +152,9 @@ chat_memory = []
 
 @app.on_event("startup")
 def startup_event():
-    print("🚀 Starting Smart Knowledge Assistant...")
-    print("⏭️ Skipping embedding to speed up Render boot.")
+    print("🚀 Smart Assistant Booting...")
+    print("⏭️ Skipping embedding on Render startup.")
+
 
 
 # === Chat Request ===
