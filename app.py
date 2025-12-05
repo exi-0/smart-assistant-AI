@@ -153,9 +153,8 @@ chat_memory = []
 @app.on_event("startup")
 def startup_event():
     print("🚀 Starting Smart Knowledge Assistant...")
-    all_texts = load_all_data()
-    embed_and_index_texts(all_texts)
-    print("✅ Assistant is ready!")
+    print("⏭️ Skipping embedding to speed up Render boot.")
+
 
 # === Chat Request ===
 class ChatRequest(BaseModel):
